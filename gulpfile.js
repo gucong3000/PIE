@@ -1,5 +1,6 @@
 "use strict";
 var header = "PIE: CSS3 rendering for IE\nVersion 2.0beta2-SNAPSHOT\nhttp://css3pie.com\nDual-licensed for use under the Apache License Version 2.0 or the General Public License (GPL) Version 2.",
+	strUncompressed = "_uncompressed",
 	gulp = require("gulp"),
 	concat = require("gulp-concat"),
 	wrapper = require("gulp-wrapper"),
@@ -11,7 +12,9 @@ var header = "PIE: CSS3 rendering for IE\nVersion 2.0beta2-SNAPSHOT\nhttp://css3
 		preserveComments: function(o, info) {
 			return /@(cc_on|if|else|end|_jscript(_\w+)?)\s/i.test(info.value);
 		},
-		properties: true
+		properties: true,
+		dead_code: true,
+		unsafe: true,
 	};
 
 function concatJs(files, name) {
@@ -23,7 +26,7 @@ function concatJs(files, name) {
 	gulp.src(files.map(function(item, index) {
 		return src_dir + item;
 	}))
-		.pipe(concat(name + "_uncompressed.js"))
+		.pipe(concat(name + strUncompressed + ".js"))
 		.pipe(jsWrapper)
 		.pipe(gulp.dest(build_dir))
 		.pipe(uglify(uglifyOpt))
@@ -32,15 +35,21 @@ function concatJs(files, name) {
 }
 
 function concatHtc(min) {
-	uglifyOpt.predef = ["element"];
-	var file = gulp.src(src_dir + "htc_script.js")
-		.pipe(concat("PIE" + (min ? "" : "_uncompressed") + ".htc"));
+	var replace = require('gulp-replace'),
+		suffix = min ? "" : strUncompressed,
+		notes = min ? "" : "//# IE will sometimes hang for a long time on unload of pages with .htc behaviors\n//# attached to many elements, if the script block is a certain size. We can work\n//# around this by including an empty vbscript block at the end. For more details:\n//# http://www.pcreview.co.uk/forums/htc-components-512-bytes-javascript-slow-unload-t727396.html\n//# http://code.google.com/p/svgweb/source/browse/trunk/src/svg.htc\n",
+		file = gulp.src(src_dir + "htc_script.js")
+		.pipe(replace(/\$JSVariant\$/g, suffix))
+		.pipe(concat("PIE" + suffix + ".htc"));
 	if (min) {
+		uglifyOpt.compress = {
+			unsafe        : true, // some unsafe optimizations (see below)
+		}
 		file.pipe(uglify(uglifyOpt));
 	}
 	file.pipe(wrapper({
 		header: "<!--\n" + header + "\n-->\n<PUBLIC:COMPONENT lightWeight=\"true\">\n<!-- saved from url=(0014)about:internet -->\n<PUBLIC:ATTACH EVENT=\"oncontentready\" FOR=\"element\" ONEVENT=\"init()\" />\n<PUBLIC:ATTACH EVENT=\"ondocumentready\" FOR=\"element\" ONEVENT=\"init()\" />\n<PUBLIC:ATTACH EVENT=\"ondetach\" FOR=\"element\" ONEVENT=\"cleanup()\" />\n<script type=\"text/javascript\">\n",
-		footer: "\n</script>\n\n//# IE will sometimes hang for a long time on unload of pages with .htc behaviors\n//# attached to many elements, if the script block is a certain size. We can work\n//# around this by including an empty vbscript block at the end. For more details:\n//# http://www.pcreview.co.uk/forums/htc-components-512-bytes-javascript-slow-unload-t727396.html\n//# http://code.google.com/p/svgweb/source/browse/trunk/src/svg.htc\n<script type=\"text/vbscript\"></script>\n</PUBLIC:COMPONENT>"
+		footer: "\n</script>\n\n" + notes + "<script type=\"text/vbscript\"></script>\n</PUBLIC:COMPONENT>"
 	}));
 	return file.pipe(gulp.dest(build_dir));
 }
