@@ -3989,7 +3989,8 @@ PIE.Element = (function() {
     }
 
     function Element( el ) {
-        var me = this,
+        var ieDocMode = PIE.ieDocMode,
+            me = this,
             childRenderers,
             rootRenderer,
             boundsInfo = new PIE.BoundsInfo( el ),
@@ -4008,10 +4009,10 @@ PIE.Element = (function() {
         /**
          * set filter gradient for this element.
          */
-        function setFilterGradient(enabled){
+        function setFilterGradient(enabled) {
             try {
                 el["filters"]["DXImageTransform.Microsoft.Gradient"]["Enabled"] = enabled;
-            } catch(ex){}
+            } catch (ex) {}
         }
 
         /**
@@ -4021,8 +4022,8 @@ PIE.Element = (function() {
             if( !initialized ) {
                 var docEl,
                     bounds,
-                    ieDocMode = PIE.ieDocMode,
                     cs = el.currentStyle,
+                    parent = el.parentNode,
                     lazy = cs.getAttribute( lazyInitCssProp ) === 'true',
                     trackActive = cs.getAttribute( trackActiveCssProp ) !== 'false',
                     trackHover = cs.getAttribute( trackHoverCssProp ) !== 'false';
@@ -4036,9 +4037,6 @@ PIE.Element = (function() {
                 if( !initializing ) {
                     initializing = 1;
                     setZoom(el);
-                    if (ieDocMode < 8 && el.parentNode && el.parentNode === el.offsetParent) {
-                        setZoom(el.parentNode);
-                    }
                     initFirstChildPseudoClass();
                 }
 
@@ -4076,6 +4074,15 @@ PIE.Element = (function() {
                             new PIE.IE9BorderImageRenderer( el, boundsInfo, styleInfos, rootRenderer )
                         ];
                     } else {
+
+                        if (parent) {
+                            if (cs.position === "static" && parent.currentStyle.position === "static") {
+                                el.runtimeStyle.position = "relative";
+                            }
+                            if (ieDocMode < 8 && parent === el.offsetParent) {
+                                setZoom(parent);
+                            }
+                        }
 
                         styleInfos = {
                             backgroundInfo: new PIE.BackgroundStyleInfo( el ),
@@ -4175,29 +4182,36 @@ PIE.Element = (function() {
 
             setFilterGradient(false);
 
-            if( !destroyed ) {
-                if( initialized ) {
-                    lockAll();
+            function upFn(){
+                if( !destroyed ) {
+                    if( initialized ) {
+                        lockAll();
 
-                    var i = 0, len = childRenderers.length,
-                        sizeChanged = boundsInfo.sizeChanged();
-                    for( ; i < len; i++ ) {
-                        childRenderers[i].prepareUpdate();
-                    }
-                    for( i = 0; i < len; i++ ) {
-                        if( force || sizeChanged || ( isPropChange && childRenderers[i].needsUpdate() ) ) {
-                            childRenderers[i].updateRendering();
+                        var i = 0, len = childRenderers.length,
+                            sizeChanged = boundsInfo.sizeChanged();
+                        for( ; i < len; i++ ) {
+                            childRenderers[i].prepareUpdate();
                         }
-                    }
-                    if( force || sizeChanged || isPropChange || boundsInfo.positionChanged() ) {
-                        rootRenderer.updateRendering();
-                    }
+                        for( i = 0; i < len; i++ ) {
+                            if( force || sizeChanged || ( isPropChange && childRenderers[i].needsUpdate() ) ) {
+                                childRenderers[i].updateRendering();
+                            }
+                        }
+                        if( force || sizeChanged || isPropChange || boundsInfo.positionChanged() ) {
+                            rootRenderer.updateRendering();
+                        }
 
-                    unlockAll();
+                        unlockAll();
+                    }
+                    else if( !initializing ) {
+                        init();
+                    }
                 }
-                else if( !initializing ) {
-                    init();
-                }
+            }
+            if (ieDocMode < 8) {
+                setTimeout(upFn, 0);
+            } else {
+                upFn();
             }
         }
 
