@@ -49,7 +49,11 @@ PIE.Element = (function() {
         }, 0 );
     }
 
-
+    function setZoom(el) {
+        if (/^normal$/i.test(el.currentStyle.zoom)) {
+            el.runtimeStyle.zoom = 1;
+        }
+    }
 
     function Element( el ) {
         var me = this,
@@ -86,7 +90,6 @@ PIE.Element = (function() {
                     bounds,
                     ieDocMode = PIE.ieDocMode,
                     cs = el.currentStyle,
-                    parent = el.parentNode,
                     lazy = cs.getAttribute( lazyInitCssProp ) === 'true',
                     trackActive = cs.getAttribute( trackActiveCssProp ) !== 'false',
                     trackHover = cs.getAttribute( trackHoverCssProp ) !== 'false';
@@ -99,7 +102,10 @@ PIE.Element = (function() {
                 // after load, but make sure it only gets called the first time through to avoid recursive calls to init().
                 if( !initializing ) {
                     initializing = 1;
-                    el.runtimeStyle.zoom = 1;
+                    setZoom(el);
+                    if (ieDocMode < 8 && el.parentNode && el.parentNode === el.offsetParent) {
+                        setZoom(el.parentNode);
+                    }
                     initFirstChildPseudoClass();
                 }
 
@@ -137,15 +143,6 @@ PIE.Element = (function() {
                             new PIE.IE9BorderImageRenderer( el, boundsInfo, styleInfos, rootRenderer )
                         ];
                     } else {
-
-                        if( parent ){
-                            if(cs.position === "static" && parent.currentStyle.position === "static"){
-                                el.runtimeStyle.position = "relative";
-                            }
-                            if(!doc.querySelector && parent === el.offsetParent){
-                                parent.runtimeStyle.zoom = 1;
-                            }
-                        }
 
                         styleInfos = {
                             backgroundInfo: new PIE.BackgroundStyleInfo( el ),
@@ -245,32 +242,30 @@ PIE.Element = (function() {
 
             setFilterGradient(false);
 
-            setTimeout(function(){
-                if( !destroyed ) {
-                    if( initialized ) {
-                        lockAll();
+            if( !destroyed ) {
+                if( initialized ) {
+                    lockAll();
 
-                        var i = 0, len = childRenderers.length,
-                            sizeChanged = boundsInfo.sizeChanged();
-                        for( ; i < len; i++ ) {
-                            childRenderers[i].prepareUpdate();
+                    var i = 0, len = childRenderers.length,
+                        sizeChanged = boundsInfo.sizeChanged();
+                    for( ; i < len; i++ ) {
+                        childRenderers[i].prepareUpdate();
+                    }
+                    for( i = 0; i < len; i++ ) {
+                        if( force || sizeChanged || ( isPropChange && childRenderers[i].needsUpdate() ) ) {
+                            childRenderers[i].updateRendering();
                         }
-                        for( i = 0; i < len; i++ ) {
-                            if( force || sizeChanged || ( isPropChange && childRenderers[i].needsUpdate() ) ) {
-                                childRenderers[i].updateRendering();
-                            }
-                        }
-                        if( force || sizeChanged || isPropChange || boundsInfo.positionChanged() ) {
-                            rootRenderer.updateRendering();
-                        }
+                    }
+                    if( force || sizeChanged || isPropChange || boundsInfo.positionChanged() ) {
+                        rootRenderer.updateRendering();
+                    }
 
-                        unlockAll();
-                    }
-                    else if( !initializing ) {
-                        init();
-                    }
+                    unlockAll();
                 }
-            }, 0 );
+                else if( !initializing ) {
+                    init();
+                }
+            }
         }
 
         /**

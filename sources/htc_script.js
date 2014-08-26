@@ -10,7 +10,7 @@ if ( !window[ 'PIE' ] && docMode < 10 ) {
     (function() {
         var queue = {},
             styleSheetRE, checkStyleSheets,
-            baseUrl, tester, isIE6, script;
+            baseUrl, script;
 
         // Create stub PIE object
         window[ 'PIE' ] = {
@@ -23,11 +23,6 @@ if ( !window[ 'PIE' ] && docMode < 10 ) {
             }
         };
 
-        // Are we in IE6?
-        tester = doc.createElement('div');
-        tester.innerHTML = '<!--[if IE 6]><i></i><![endif]-->';
-        isIE6 = tester.getElementsByTagName('i')[0];
-
         // Look for a custom pie-load-path parameter in the page's url...
         baseUrl = doc.location.href.match(/pie-load-path=([^&]+)/);
         if( baseUrl ) {
@@ -35,7 +30,7 @@ if ( !window[ 'PIE' ] && docMode < 10 ) {
         }
         // Otherwise look for a custom -pie-load-path property in the CSS for the html element...
         if( !baseUrl ) {
-            baseUrl = doc.documentElement.currentStyle.getAttribute( ( isIE6 ? '' : '-' ) + 'pie-load-path' );
+            baseUrl = doc.documentElement.currentStyle.getAttribute( ( "XMLHttpRequest" in window ? '-' : '' ) + 'pie-load-path' );
         }
         // Otherwise look through the stylesheets for the location of the behavior file...
         if( !baseUrl ) {
