@@ -2184,11 +2184,13 @@ PIE.IE9BackgroundRenderer = PIE.RendererBase.newRenderer( {
                         bgSize = ( img.bgSize || PIE.BgSize.DEFAULT ).pixels(
                             me.targetElement, bgAreaSize.w, bgAreaSize.h, bgAreaSize.w, bgAreaSize.h
                         );
-                        bg.push(
-                            'url(' + me.getGradientImgData( img, bgSize.w, bgSize.h )  + ') ' +
-                            me.bgPositionToString( img.bgPosition ) + ' / ' + bgSize.w + 'px ' + bgSize.h + 'px ' +
-                            ( img.bgAttachment || '' ) + ' ' + ( img.bgOrigin || '' ) + ' ' + ( img.bgClip || '' )
-                        );
+                        try {
+                            bg.push(
+                                'url(' + me.getGradientImgData( img, bgSize.w, bgSize.h )  + ') ' +
+                                me.bgPositionToString( img.bgPosition ) + ' / ' + bgSize.w + 'px ' + bgSize.h + 'px ' +
+                                ( img.bgAttachment || '' ) + ' ' + ( img.bgOrigin || '' ) + ' ' + ( img.bgClip || '' )
+                            );
+                        } catch (ex) {}
                     } else {
                         bg.push( img.origString );
                     }
