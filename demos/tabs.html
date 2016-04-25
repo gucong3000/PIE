@@ -5,36 +5,9 @@
     <meta content="text/html; charset=UTF-8" http-equiv="content-type">
     <title>CSS3 PIE Demo: Tabs</title>
 
-    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script>
-
     <!--[if lt IE 9]>
         <script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
     <![endif]-->
-
-    <script type="text/javascript">
-        $( function() {
-            var cb = $( '#togglePIE' );
-            if( !( cb[0] && cb[0].addBehavior ) ) return; //IE only
-
-            function togglePIE() {
-                $( cb[0].getAttribute( 'data-target' ) ).each( function() {
-                    if( cb.is(":checked") ) {
-                        if( !this.behaviorId ) {
-                            this.behaviorId = this.addBehavior( '../build/PIE.htc' );
-                        }
-                    }
-                    else if( this.behaviorId ) {
-                        this.removeBehavior( this.behaviorId );
-                        this.behaviorId = null;
-                    }
-                } );
-            }
-
-            cb.change( togglePIE );
-            togglePIE();
-        } );
-    </script>
-
 
     <style type="text/css">
 
@@ -118,7 +91,7 @@
             padding: 0 10px;
             color: #000;
             text-decoration: none;
-            /* applied by script instead so it can be toggled dynamically... behavior: url(../build/PIE.htc); */
+            behavior: url(../build/PIE.htc);
         }
         .tabBox .tabs .selected a {
             background: #FFF;
@@ -150,7 +123,7 @@
             -webkit-box-shadow: #CCC 0 0 .25em;
             -moz-box-shadow: #CCC 0 0 .25em;
             box-shadow: #CCC 0 0 .25em;
-            /* applied by script instead so it can be toggled dynamically... behavior: url(../build/PIE.htc); */
+            behavior: url(../build/PIE.htc);
         }
         .tabBox .content p {
             margin: 0;
@@ -194,13 +167,6 @@
                 <p>Lorem ipsum dolor sit amet</p>
             </div>
         </div>
-
-        <!--[if lt IE 9]>
-            <p>
-                <input type="checkbox" id="togglePIE" checked="checked" data-target=".demo .tabs a, .demo .content" />
-                <label for="togglePIE">Toggle PIE behavior</label>
-            </p>
-        <![endif]-->
     </section>
 
     <section class="code">

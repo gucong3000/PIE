@@ -25,6 +25,7 @@
             background: #EEE;
             border: 1px solid #999;
             font-size: 18px;
+            behavior: url(../build/PIE.htc);
 
             /* default CSS3 values: */
             /*-webkit-border-radius: 8px;
@@ -139,9 +140,7 @@
                     css.push( 'background: -ms-linear-gradient(' + color1 + ', ' + color2 + ');' );
                     css.push( 'background: -o-linear-gradient(' + color1 + ', ' + color2 + ');' );
                     css.push( 'background: linear-gradient(' + color1 + ', ' + color2 + ');' );
-                    if( $( '#pieToggle' ).is(':checked') ) {
-                        css.push( '-pie-background: linear-gradient(' + color1 + ', ' + color2 + ');' );
-                    }
+                    css.push( '-pie-background: linear-gradient(' + color1 + ', ' + color2 + ');' );
                 }
                 return css;
             }
@@ -150,24 +149,11 @@
                 var tgtEl = $( '#target' )[0],
                     css = [ 'border: 1px solid #696;', 'padding: 60px 0;', 'text-align: center; width: 200px;' ].concat( getBorderRadiusCss() ).concat( getBoxShadowCss() ).concat( getGradientCss() );
 
-                if( $( '#pieToggle' ).is(':checked') ) {
-                    css.push( 'behavior: url(' + behaviorUrl + ');' );
-                }
+                css.push( 'behavior: url(' + behaviorUrl + ');' );
                 $( '#output' ).html( css.join( '<br>' ) );
 
                 tgtEl.style.cssText = css.join( '' );
 
-                if( tgtEl.addBehavior ) {
-                    if( $( '#pieToggle' ).is(':checked') ) {
-                        if( !behaviorId ) {
-                            behaviorId = tgtEl.addBehavior( behaviorUrl );
-                        }
-                    }
-                    else if( behaviorId ) {
-                        tgtEl.removeBehavior( behaviorId );
-                        behaviorId = null;
-                    }
-                }
             }
 
             function updateDetailsVis() {
@@ -306,10 +292,6 @@
             <fieldset id="pieControls">
                 <legend>Options</legend>
                 <ul>
-                    <li>
-                        <input type="checkbox" id="pieToggle" checked="checked" />
-                        <label for="pieToggle">Enable PIE (only affects IE)</label>
-                    </li>
                     <li>
                         <input type="checkbox" id="codeToggle" />
                         <label for="codeToggle">Show CSS</label>
